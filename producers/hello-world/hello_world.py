@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-
-"""Simple example: pushing messages to the reporting collector API."""
+"""
+Simple example: pushing messages to the kafka-reporting API.
+"""
 
 import json
 import os
 import platform
 import random
+import sys
 import time
 import uuid
 
@@ -14,6 +16,11 @@ import requests
 HOSTNAME = platform.node()
 SESSION = str(uuid.uuid4())
 SCHEMA = "hello-world"
+
+REQUIRED_ENVIRONMENT = ["REPORTING_%s" % suffix
+                        for suffix in ["SERVER", "TOPIC", "USERNAME", "TOKEN"]]
+MISSING_ENVIRONMENT = [var for var in REQUIRED_ENVIRONMENT
+                       if var not in os.environ]
 
 
 def post(server, topic, username, token, https_verify):
@@ -42,6 +49,10 @@ def post(server, topic, username, token, https_verify):
 
 
 if __name__ == "__main__":
+    if len(MISSING_ENVIRONMENT) > 0:
+        sys.exit("Missing environment variables: %s" %
+                 " ".join(MISSING_ENVIRONMENT))
+
     print(post(os.getenv("REPORTING_SERVER"), os.getenv("REPORTING_TOPIC"),
                os.getenv("REPORTING_USERNAME"), os.getenv("REPORTING_TOKEN"),
                os.getenv("REPORTING_HTTPS_VERIFY", "true").lower() == "true"))
